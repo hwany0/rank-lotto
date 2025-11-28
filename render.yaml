@@ -1,0 +1,9 @@
+# render.yaml 파일 (리포지토리 루트에 추가)
+services:
+  - type: web
+    name: my-lotto-api
+    env: python
+    plan: free                    # 무료 플랜
+    autoDeploy: true              # 깃허브 푸시하면 자동 배포
+    buildCommand: pip install -r requirements.txt
+    startCommand: streamlit run main.py --server.port $PORT --server.address 0.0.0.0
