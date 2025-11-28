@@ -3,6 +3,8 @@ import streamlit as st
 from load import update_lotto_db
 import os
 
+lotto_db = update_lotto_db()
+
 # 웹 디자인
 st.set_page_config(page_title="로또 당첨 확인기", page_icon="four_leaf_clover", layout="centered")
 st.markdown("""
