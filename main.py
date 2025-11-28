@@ -1,5 +1,5 @@
 # main.py
-from update_lotto_db import load_lotto_data   # ← 이게 정답!
+from load import update_lotto_db
 
 # 무한 반복 로또 당첨 확인기 (종료할 때까지 계속!)
 print("\n" + "="*70)
