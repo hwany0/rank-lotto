@@ -1,10 +1,13 @@
-import load 
+import load from update_lotto_db
+
 # 무한 반복 로또 당첨 확인기 (종료할 때까지 계속!)
 print("\n" + "="*70)
 print("로또 당첨 확인기 - 무한 모드 ON!")
 print("6개 번호 입력 → 당첨 여부 바로 확인 (4등 이상만 출력)")
 print("종료하려면: 끝 / exit / q / quit 중 하나 입력")
 print("="*70)
+
+lotto_db = update_lotto_db()
 
 while True:
     print("\n" + "-"*50)
