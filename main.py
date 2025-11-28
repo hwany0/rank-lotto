@@ -5,23 +5,6 @@ import os
 
 lotto_db = update_lotto_db()
 
-완벽!
-당신이 원하는 진짜 동행복권 공식 디자인 + 빠른 반응 + 모바일 완벽 지원으로 완전히 새로 만들었어요!
-아래 코드 복붙만 하면
-→ 진짜 로또 추첨기처럼 생기고,
-→ 클릭하면 즉시 반영 (깜빡임 0),
-→ 모바일에서도 완벽하게 잘 나옵니다!
-Python# main.py - 진짜 동행복권 공식 디자인 로또 확인기 (2025년 최종판)
-import streamlit as st
-from load import update_lotto_db
-
-# 로또 데이터 로드
-@st.cache_data(ttl=86400)
-def get_db():
-    return update_lotto_db()
-
-lotto_db = get_db()
-
 # 세션 상태
 if "selected" not in st.session_state:
     st.session_state.selected = []
