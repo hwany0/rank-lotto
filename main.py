@@ -3,7 +3,6 @@ import streamlit as st
 from load import update_lotto_db
 import os
 
-# ==================== 기본 설정 ====================
 st.set_page_config(
     page_title="로또 6/45 당첨 확인기",
     page_icon="🍀",
@@ -19,8 +18,7 @@ lotto_db = get_db()
 if "selected" not in st.session_state:
     st.session_state.selected = []
 
-
-# ==================== CSS (Grid + 버튼 스타일) ====================
+# ==================== CSS ====================
 st.markdown("""
 <style>
     body {
@@ -69,8 +67,17 @@ st.markdown("""
         box-shadow: 0 4px 10px rgba(0,0,0,0.5) !important;
     }
 
-    /* 숫자별 실제 로또 색상 */
-    %s
+    /* 번호 색상 */
+    /* 1~10 노랑 */
+    div[data-testid="stButton"][class*="1"] button { background: #fbc400 !important; }
+    /* 11~20 파랑 */
+    div[data-testid="stButton"][class*="2"] button { background: #69c8f2 !important; }
+    /* 21~30 빨강 */
+    div[data-testid="stButton"][class*="3"] button { background: #ff7272 !important; }
+    /* 31~40 회색 */
+    div[data-testid="stButton"][class*="4"] button { background: #aaaaaa !important; }
+    /* 41~45 초록 */
+    div[data-testid="stButton"][class*="5"] button { background: #b0d840 !important; }
 
     .ball {
         width: 60px; height: 60px;
@@ -78,7 +85,7 @@ st.markdown("""
         display: inline-flex;
         justify-content: center;
         align-items: center;
-        margin: 5px;
+        margin: 6px;
         font-weight: bold;
         font-size: 24px;
         border: 3px solid white;
@@ -88,30 +95,18 @@ st.markdown("""
     .ball-3 { background: #ff7272; }
     .ball-4 { background: #aaaaaa; }
     .ball-5 { background: #b0d840; }
-
 </style>
-""" % "\n".join(
-    [f"div.stButton:nth-child({i}) > button {{ background:{color} !important; }}"
-     for i, color in [
-         *[(i, "#fbc400") for i in range(1, 11)],
-         *[(i, "#69c8f2") for i in range(11, 21)],
-         *[(i, "#ff7272") for i in range(21, 31)],
-         *[(i, "#aaaaaa") for i in range(31, 41)],
-         *[(i, "#b0d840") for i in range(41, 46)],
-     ]]
-),
-    unsafe_allow_html=True
-)
-
+""", unsafe_allow_html=True)
 
 # ==================== UI ====================
+
 st.markdown('<h1 class="title">로또 6/45 당첨 확인기</h1>', unsafe_allow_html=True)
 
 if st.button("번호 초기화"):
     st.session_state.selected = []
     st.rerun()
 
-# 선택 번호 표시
+# 선택 표시
 if st.session_state.selected:
     html = "".join(
         f"<span class='ball ball-{(n-1)//10 + 1}'>{n}</span>"
@@ -121,12 +116,11 @@ if st.session_state.selected:
 else:
     st.markdown("<p style='text-align:center'>6개의 번호를 선택하세요.</p>", unsafe_allow_html=True)
 
-
-# ==================== 번호 버튼 (Streamlit 버튼 + CSS Grid) ====================
+# ==================== 번호 버튼 (CSS Grid) ====================
 st.markdown('<div class="grid-container">', unsafe_allow_html=True)
 
 for num in range(1, 46):
-    if st.button(str(num), key=f"num{num}"):
+    if st.button(str(num), key=f"num_{num}"):
         if num in st.session_state.selected:
             st.session_state.selected.remove(num)
         elif len(st.session_state.selected) < 6:
@@ -134,7 +128,6 @@ for num in range(1, 46):
         st.rerun()
 
 st.markdown('</div>', unsafe_allow_html=True)
-
 
 # ==================== 결과 ====================
 if len(st.session_state.selected) == 6:
