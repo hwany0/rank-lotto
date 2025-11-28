@@ -3,7 +3,12 @@ import streamlit as st
 from load import update_lotto_db
 import os
 
-lotto_db = update_lotto_db()
+# 로또 데이터 로드
+@st.cache_data(ttl=86400)
+def get_db():
+    return update_lotto_db()
+
+lotto_db = get_db()
 
 # 세션 상태
 if "selected" not in st.session_state:
