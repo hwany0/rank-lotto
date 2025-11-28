@@ -1,173 +1,91 @@
-# main.py
 import streamlit as st
 from load import update_lotto_db
-import os
 
-st.set_page_config(
-    page_title="로또 6/45 당첨 확인기",
-    page_icon="🍀",
-    layout="centered",
-)
+st.set_page_config(page_title="로또", layout="centered")
 
-@st.cache_data(ttl=86400)
-def get_db():
-    return update_lotto_db()
-
-lotto_db = get_db()
+# ==================== 번호 전달 처리 ====================
+query = st.query_params
 
 if "selected" not in st.session_state:
     st.session_state.selected = []
 
+if "pick" in query:
+    num = int(query["pick"])
+    sel = st.session_state.selected
+
+    if num in sel:
+        sel.remove(num)
+    elif len(sel) < 6:
+        sel.append(num)
+
+    st.session_state.selected = sel
+
+    # 선택 후 URL 정리
+    st.query_params.clear()
+
 # ==================== CSS ====================
 st.markdown("""
 <style>
-    body {
-        background: linear-gradient(to bottom, #003087, #001f5a);
-        color: white;
-        font-family: 'Malgun Gothic', sans-serif;
-    }
+.grid {
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+    gap: 10px;
+    margin-top: 20px;
+}
 
-    .title {
-        font-size: 3rem;
-        color: #ffd700;
-        text-align: center;
-        margin: 20px 0;
-        text-shadow: 3px 3px 12px #000;
-    }
+@media (max-width: 900px) {
+    .grid { grid-template-columns: repeat(5, 1fr); }
+}
 
-    .grid-container {
-        display: grid;
-        grid-template-columns: repeat(9, 1fr);
-        gap: 10px;
-        justify-items: center;
-        margin-top: 20px;
-    }
+@media (max-width: 600px) {
+    .grid { grid-template-columns: repeat(3, 1fr); }
+}
 
-    @media (max-width: 900px) {
-        .grid-container {
-            grid-template-columns: repeat(5, 1fr);
-        }
-    }
+.btn {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    font-size: 20px;
+    font-weight: bold;
+    border: 3px solid #fff;
+    color: #fff;
+    cursor: pointer;
+}
 
-    @media (max-width: 500px) {
-        .grid-container {
-            grid-template-columns: repeat(3, 1fr);
-        }
-    }
+/* 색상 */
+.btn.y { background: #fbc400; }
+.btn.b { background: #69c8f2; }
+.btn.r { background: #ff7272; }
+.btn.g { background: #aaaaaa; }
+.btn.l { background: #b0d840; }
 
-    /* Streamlit 버튼 기본 스타일 제거 */
-    div.stButton > button {
-        width: 60px !important;
-        height: 60px !important;
-        border-radius: 50% !important;
-        font-size: 20px !important;
-        font-weight: bold !important;
-        color: white !important;
-        border: 3px solid rgba(255,255,255,0.5) !important;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.5) !important;
-    }
-
-    /* 번호 색상 */
-    /* 1~10 노랑 */
-    div[data-testid="stButton"][class*="1"] button { background: #fbc400 !important; }
-    /* 11~20 파랑 */
-    div[data-testid="stButton"][class*="2"] button { background: #69c8f2 !important; }
-    /* 21~30 빨강 */
-    div[data-testid="stButton"][class*="3"] button { background: #ff7272 !important; }
-    /* 31~40 회색 */
-    div[data-testid="stButton"][class*="4"] button { background: #aaaaaa !important; }
-    /* 41~45 초록 */
-    div[data-testid="stButton"][class*="5"] button { background: #b0d840 !important; }
-
-    .ball {
-        width: 60px; height: 60px;
-        border-radius: 50%;
-        display: inline-flex;
-        justify-content: center;
-        align-items: center;
-        margin: 6px;
-        font-weight: bold;
-        font-size: 24px;
-        border: 3px solid white;
-    }
-    .ball-1 { background: #fbc400; }
-    .ball-2 { background: #69c8f2; }
-    .ball-3 { background: #ff7272; }
-    .ball-4 { background: #aaaaaa; }
-    .ball-5 { background: #b0d840; }
 </style>
 """, unsafe_allow_html=True)
 
-# ==================== UI ====================
+# ==================== 버튼 렌더 ====================
+html = '<div class="grid">'
 
-st.markdown('<h1 class="title">로또 6/45 당첨 확인기</h1>', unsafe_allow_html=True)
-
-if st.button("번호 초기화"):
-    st.session_state.selected = []
-    st.rerun()
-
-# 선택 표시
-if st.session_state.selected:
-    html = "".join(
-        f"<span class='ball ball-{(n-1)//10 + 1}'>{n}</span>"
-        for n in sorted(st.session_state.selected)
-    )
-    st.markdown(f"<div style='text-align:center'>{html}</div>", unsafe_allow_html=True)
-else:
-    st.markdown("<p style='text-align:center'>6개의 번호를 선택하세요.</p>", unsafe_allow_html=True)
-
-# ==================== 번호 버튼 (CSS Grid) ====================
-st.markdown('<div class="grid-container">', unsafe_allow_html=True)
-
-for num in range(1, 46):
-    if st.button(str(num), key=f"num_{num}"):
-        if num in st.session_state.selected:
-            st.session_state.selected.remove(num)
-        elif len(st.session_state.selected) < 6:
-            st.session_state.selected.append(num)
-        st.rerun()
-
-st.markdown('</div>', unsafe_allow_html=True)
-
-# ==================== 결과 ====================
-if len(st.session_state.selected) == 6:
-    my_set = set(st.session_state.selected)
-    results = ""
-    found = False
-
-    for no, info in lotto_db.items():
-        match = len(my_set & set(info["numbers"]))
-
-        if match >= 4:
-            found = True
-
-            if match == 6:
-                rank = "1등"
-            elif match == 5 and info["bonus"] in my_set:
-                rank = "2등"
-            elif match == 5:
-                rank = "3등"
-            else:
-                rank = "4등"
-
-            balls = "".join(
-                f"<span class='ball ball-{(n-1)//10 + 1}'>{n}</span>"
-                for n in info["numbers"]
-            )
-
-            results += f"""
-            <div style="text-align:center; background:rgba(255,255,255,0.15); 
-                        padding:20px; margin:20px; border-radius:15px;">
-                <h3 style="color:gold">제 {no}회 → {rank} 당첨!</h3>
-                {balls} + <span class='ball ball-5'>{info['bonus']}</span>
-                <br><small>{info['date']}</small>
-            </div>
-            """
-
-    if found:
-        st.success("🎉 축하합니다! 당첨입니다!")
-        st.balloons()
+for n in range(1, 46):
+    if n <= 10:
+        cls = "y"
+    elif n <= 20:
+        cls = "b"
+    elif n <= 30:
+        cls = "r"
+    elif n <= 40:
+        cls = "g"
     else:
-        st.info("4등 이상 당첨 없음. 다음 기회에!")
+        cls = "l"
 
-    st.markdown(results, unsafe_allow_html=True)
+    html += f"""
+    <button class="btn {cls}" onclick="window.location.href='?pick={n}'">
+        {n}
+    </button>
+    """
+
+html += '</div>'
+
+st.markdown(html, unsafe_allow_html=True)
+
+# ==================== 선택 번호 표시 ====================
+st.write("선택된 번호:", st.session_state.selected)
