@@ -182,7 +182,7 @@ st.markdown('<h1 class="title">로또 6/45 당첨 확인기</h1>', unsafe_allow_
 # 상단 기능 버튼 (번호 초기화)
 if st.button("번호 초기화", key="reset_btn"):
     st.session_state.selected = []
-    st.experimental_rerun()
+    st.rerun()
 
 # 선택된 번호 표시
 if st.session_state.selected:
@@ -212,7 +212,7 @@ for num in range(1, 46):
                 st.session_state.selected.remove(num)
             elif len(st.session_state.selected) < 6:
                 st.session_state.selected.append(num)
-            st.experimental_rerun()
+            st.rerun()
 
 # ===================== 결과 =====================
 if len(st.session_state.selected) == 6:
