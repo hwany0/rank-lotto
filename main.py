@@ -12,22 +12,21 @@ lotto_db = get_db()
 if "selected" not in st.session_state:
     st.session_state.selected = []
 
-# 완전히 깨끗한 화면 (네모, 헤더, 푸터 전부 제거 + 배경 깔끔하게)
 st.set_page_config(
     page_title="로또 6/45",
     page_icon="four_leaf_clover",
     layout="centered"
 )
 
-st.markdown(
-    """
+# ===================== CSS =====================
+st.markdown("""
 <style>
-    /* Streamlit 기본 요소 완전 제거 */
+    /* 기본 스트림릿 요소 제거 */
     #MainMenu, header, footer {visibility: hidden !important;}
     .stApp > div:first-child {background: none !important;}
     .block-container {padding-top: 0rem !important; padding-bottom: 0rem !important;}
-    
-    /* 진짜 로또 배경 */
+
+    /* 전체 배경 */
     body {
         background: linear-gradient(to bottom, #003087, #001f5a);
         color: white;
@@ -36,94 +35,151 @@ st.markdown(
         min-height: 100vh;
     }
 
-    /* 로또 공 디자인 (선택된 번호 표시용) */
-    .ball {
-        width: 72px; height: 72px; border-radius: 50%; display: inline-flex;
-        align-items: center; justify-content: center; font-size: 28px; font-weight: bold;
-        color: white; margin: 10px; box-shadow: 0 6px 15px rgba(0,0,0,0.6);
-        transition: all 0.2s ease; border: 4px solid #fff;
-    }
-    .ball-1 {background: #fbc400;} 
-    .ball-2 {background: #69c8f2;} 
-    .ball-3 {background: #ff7272;} 
-    .ball-4 {background: #aaa;} 
-    .ball-5 {background: #b0d840;}
-    .selected {transform: scale(1.25); box-shadow: 0 0 30px gold !important; z-index: 10;}
-
-    /* Streamlit 버튼들을 공 모양으로 */
-    div.stButton > button {
-        width: 72px;
-        height: 72px;
-        border-radius: 50%;
-        font-size: 22px;
-        font-weight: bold;
-        margin: 6px;
-        border: 3px solid #ffffffaa;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-        background: #004aad;
-        color: #fff;
-    }
-
     /* 타이틀 */
     .title {
-        font-size: 3.5rem; 
-        color: #ffd700; 
-        text-align: center; 
-        margin: 30px 0; 
+        font-size: 3.5rem;
+        color: #ffd700;
+        text-align: center;
+        margin: 30px 0 10px 0;
         text-shadow: 3px 3px 12px #000;
     }
+
+    /* 선택된 번호 표시 공 */
+    .ball {
+        width: 72px; height: 72px; border-radius: 50%;
+        display: inline-flex; align-items: center; justify-content: center;
+        font-size: 28px; font-weight: bold;
+        color: white; margin: 10px;
+        box-shadow: 0 6px 15px rgba(0,0,0,0.6);
+        transition: all 0.2s ease; border: 4px solid #fff;
+    }
+    .ball-1 {background: #fbc400;}   /* 노랑 */
+    .ball-2 {background: #69c8f2;}   /* 파랑 */
+    .ball-3 {background: #ff7272;}   /* 빨강 */
+    .ball-4 {background: #aaa;}      /* 회색 */
+    .ball-5 {background: #b0d840;}   /* 초록 */
+    .selected {transform: scale(1.25); box-shadow: 0 0 30px gold !important;}
+
+    /* 기능 버튼(번호 초기화) */
+    button[aria-label="번호 초기화"] {
+        width: 200px !important;
+        height: 42px !important;
+        border-radius: 999px !important;
+        font-size: 16px !important;
+        font-weight: 600 !important;
+        margin: 10px auto 20px auto !important;
+        display: block !important;
+        background: rgba(255,255,255,0.15) !important;
+        color: #ffffff !important;
+        border: 1px solid rgba(255,255,255,0.5) !important;
+    }
+    button[aria-label="번호 초기화"]:hover {
+        background: rgba(255,255,255,0.3) !important;
+    }
+
+    /* 로또 번호 버튼(공 형태) */
+    div.stButton > button {
+        width: 72px; height: 72px;
+        border-radius: 50%;
+        font-size: 22px; font-weight: bold;
+        margin: 6px;
+        border: 3px solid #ffffffaa;
+        color: #fff;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        transition: 0.1s ease;
+    }
+    div.stButton > button:hover {
+        transform: translateY(-2px);
+        filter: brightness(1.05);
+    }
+
+    /* 번호별 실제 로또 공 색상 적용 */
+    /* 1~10 노랑 */
+    %s
+    /* 11~20 파랑 */
+    %s
+    /* 21~30 빨강 */
+    %s
+    /* 31~40 회색 */
+    %s
+    /* 41~45 초록 */
+    %s
+
+    /* 반응형 번호 버튼 9열 → 모바일 5열 */
+    .number-wrap {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-top: 10px;
+    }
+
+    /* PC (9열) */
+    .number-wrap > div {
+        flex: 0 0 calc(100%% / 9);
+        display: flex;
+        justify-content: center;
+        padding: 2px;
+    }
+
+    /* 모바일: 5열 */
+    @media (max-width: 600px) {
+        .number-wrap > div {
+            flex: 0 0 calc(100%% / 5);
+        }
+    }
 </style>
-""",
-    unsafe_allow_html=True,
-)
+""" %
+("\n".join([f'button[aria-label="{i}"] {{background:#fbc400 !important;}}' for i in range(1,11)]),
+ "\n".join([f'button[aria-label="{i}"] {{background:#69c8f2 !important;}}' for i in range(11,21)]),
+ "\n".join([f'button[aria-label="{i}"] {{background:#ff7272 !important;}}' for i in range(21,31)]),
+ "\n".join([f'button[aria-label="{i}"] {{background:#aaaaaa !important;}}' for i in range(31,41)]),
+ "\n".join([f'button[aria-label="{i}"] {{background:#b0d840 !important;}}' for i in range(41,46)])
+), unsafe_allow_html=True)
+
+# ===================== UI =====================
 
 # 타이틀
 st.markdown('<h1 class="title">로또 6/45 당첨 확인기</h1>', unsafe_allow_html=True)
 
-# 선택된 번호 표시 (위에 예쁘게 공으로)
+# 상단 기능 버튼
+if st.button("번호 초기화", key="reset_btn"):
+    st.session_state.selected = []
+    st.experimental_rerun()
+
+# 선택된 번호 표시
 if st.session_state.selected:
-    balls = "".join(
-        [
-            f"<span class='ball ball-{(n-1)//10 + 1} selected'>{n}</span>"
-            for n in sorted(st.session_state.selected)
-        ]
-    )
-    st.markdown(
-        f"<div style='text-align:center; padding:30px;'>{balls}</div>",
-        unsafe_allow_html=True,
-    )
+    balls = "".join([
+        f"<span class='ball ball-{(n-1)//10 + 1} selected'>{n}</span>"
+        for n in sorted(st.session_state.selected)
+    ])
+    st.markdown(f"<div style='text-align:center;'>{balls}</div>", unsafe_allow_html=True)
+else:
+    st.markdown("<p style='text-align:center;'>6개의 번호를 선택하세요</p>", unsafe_allow_html=True)
 
-st.markdown("### 번호를 선택하세요 (최대 6개)")
-
-# 🔹 여기서부터: 9열 그리드 (st.columns 사용)
-cols = st.columns(9)
+# 번호 선택 UI (반응형 9열/5열)
+st.markdown("<div class='number-wrap'>", unsafe_allow_html=True)
 
 for num in range(1, 46):
-    col = cols[(num - 1) % 9]
+    col = st.columns(1)[0]
     with col:
-        # 버튼에 선택 여부 반영 (색 조금 바꾸고 싶으면 여기에서 조건 분기해서 CSS 더 줄 수 있음)
         if st.button(str(num), key=f"n{num}"):
             if num in st.session_state.selected:
                 st.session_state.selected.remove(num)
             elif len(st.session_state.selected) < 6:
                 st.session_state.selected.append(num)
-            st.rerun()
+            st.experimental_rerun()
 
-st.write("")  # 살짝 아래 여백
+st.markdown("</div>", unsafe_allow_html=True)
 
-# 초기화 버튼
-if st.button("번호 초기화", use_container_width=True):
-    st.session_state.selected = []
-    st.rerun()
-
-# 결과
+# ===================== 결과 =====================
 if len(st.session_state.selected) == 6:
     my_set = set(st.session_state.selected)
+    result_html = ""
     found = False
-    result = ""
 
     for no, info in lotto_db.items():
         match = len(my_set & set(info["numbers"]))
+
         if match >= 4:
             if match == 6:
                 rank = "1등"
@@ -135,29 +191,26 @@ if len(st.session_state.selected) == 6:
                 rank = "4등"
 
             win_balls = " ".join(
-                [
-                    f"<span class='ball ball-{(n-1)//10 + 1}'>{n}</span>"
-                    for n in info["numbers"]
-                ]
+                [f"<span class='ball ball-{(n-1)//10 + 1}'>{n}</span>" for n in info["numbers"]]
             )
 
-            result += (
-                "<div style='background:rgba(255,255,255,0.15); "
-                "padding:30px; margin:20px auto; border-radius:20px; "
-                "max-width:700px; text-align:center;'>"
-            )
-            result += f"<h3 style='color:gold; margin:10px;'>제 {no}회 → {rank} 당첨!!!</h3>"
-            result += (
-                f"<p style='margin:15px 0; font-size:1.5rem;'>{win_balls} + "
-                f"<span class='ball bonus'>{info['bonus']}</span></p>"
-            )
-            result += f"<small style='color:#ccc;'>{info['date']}</small></div>"
+            result_html += f"""
+            <div style='background:rgba(255,255,255,0.15); 
+                        padding:30px; margin:20px auto; border-radius:20px;
+                        max-width:700px; text-align:center;'>
+                <h3 style='color:gold;'>제 {no}회 → {rank} 당첨!!!</h3>
+                <p style='font-size:1.5rem;'>{win_balls} + 
+                    <span class='ball ball-5'>{info['bonus']}</span>
+                </p>
+                <small style='color:#ccc;'>{info['date']}</small>
+            </div>
+            """
             found = True
 
     if found:
         st.balloons()
-        st.success("축하합니다!!! 당첨됐어요!!!")
+        st.success("축하합니다! 당첨입니다!")
     else:
-        st.info("4등 이상 없네요... 다음 기회에!")
+        st.info("4등 이상 당첨 없음. 다음 기회에!")
 
-    st.markdown(result, unsafe_allow_html=True)
+    st.markdown(result_html, unsafe_allow_html=True)
